@@ -1,10 +1,6 @@
 import * as world from '../library/world.js';
-import * as mc from '../../utils/mcdata.js';
 import convoManager from '../conversation.js';
-
-const pad = (str) => {
-    return '\n' + str + '\n';
-}
+import { getAdjacentBlocksString, getInventoryString, pad } from '../npc/utils.js';
 
 // queries are commands that just return strings and don't affect anything in the world
 export const queryList = [
@@ -21,6 +17,7 @@ export const queryList = [
             res += `\n- Health: ${Math.round(bot.health)} / 20`;
             res += `\n- Hunger: ${Math.round(bot.food)} / 20`;
             res += `\n- Biome: ${world.getBiomeName(bot)}`;
+            res += `\n- Dimension: ${bot.game.dimension}`;
             let weather = "Clear";
             if (bot.rainState > 0)
                 weather = "Rain";
@@ -53,8 +50,13 @@ export const queryList = [
 
             res += '\n- Nearby Human Players: ' + (players.length > 0 ? players.join(', ') : 'None.');
             res += '\n- Nearby Bot Players: ' + (bots.length > 0 ? bots.join(', ') : 'None.');
-
-            res += '\n' + agent.bot.modes.getMiniDocs() + '\n';
+            res += getInventoryString(agent);
+            res += agent.bot.modes.getMiniDocs();
+            res += getAdjacentBlocksString(bot);
+            if (agent.memory_bank.getKeys()) {
+                res += "\nSAVED PLACES\n- ";
+                res += agent.memory_bank.getKeys().replaceAll(', ', '\n- ');
+            }
             return pad(res);
         }
     },
@@ -62,70 +64,26 @@ export const queryList = [
         name: "!inventory",
         description: "Get your bot's inventory.",
         perform: function (agent) {
-            let bot = agent.bot;
-            let inventory = world.getInventoryCounts(bot);
-            let res = 'INVENTORY';
-            for (const item in inventory) {
-                if (inventory[item] && inventory[item] > 0)
-                    res += `\n- ${item}: ${inventory[item]}`;
-            }
-            if (res === 'INVENTORY') {
-                res += ': Nothing';
-            }
-            else if (agent.bot.game.gameMode === 'creative') {
-                res += '\n(You have infinite items in creative mode. You do not need to gather resources!!)';
-            }
-
-            let helmet = bot.inventory.slots[5];
-            let chestplate = bot.inventory.slots[6];
-            let leggings = bot.inventory.slots[7];
-            let boots = bot.inventory.slots[8];
-            res += '\nWEARING: ';
-            if (helmet)
-                res += `\nHead: ${helmet.name}`;
-            if (chestplate)
-                res += `\nTorso: ${chestplate.name}`;
-            if (leggings)
-                res += `\nLegs: ${leggings.name}`;
-            if (boots)
-                res += `\nFeet: ${boots.name}`;
-            if (!helmet && !chestplate && !leggings && !boots)
-                res += 'Nothing';
-
-            return pad(res);
+            return getInventoryString(agent);
         }
     },
     {
         name: "!nearbyBlocks",
-        description: "Get the blocks near the bot. Use scanBlocks for a detailed view.",
+        description: "Get the blocks near the bot.",
         perform: function (agent) {
             let bot = agent.bot;
             let res = 'NEARBY_BLOCKS';
-            let blocks = world.getNearbyBlockTypes(bot);
+            let blocks = world.getNearbyBlockDetails(bot);
             for (let i = 0; i < blocks.length; i++) {
                 res += `\n- ${blocks[i]}`;
             }
             if (blocks.length == 0) {
                 res += ': none';
             }
+            res += `\nYour location: [${Math.round(bot.entity.position.x)},${Math.round(bot.entity.position.y)},${Math.round(bot.entity.position.z)}]`;
+            res += getAdjacentBlocksString(bot); 
             return pad(res);
         }
-    },
-    {
-      name: "!scanBlocks",
-      description: "Get detailed information about interesting nearby eye-level blocks.",
-      perform: function (agent) {
-          let bot = agent.bot;
-          let res = 'SCAN_BLOCKS';
-          let blocks = world.getNearbyBlocksDetailed(bot);
-          for (let i = 0; i < blocks.length; i++) {
-              res += `\n- ${blocks[i]}`;
-          }
-          if (blocks.length == 0) {
-              res += ': none';
-          }
-          return pad(res);
-      }
     },
     {
         name: "!craftable",
@@ -185,3 +143,5 @@ export const queryList = [
         }
     }
 ];
+
+
