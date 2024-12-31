@@ -1218,7 +1218,7 @@ export async function useDoor(bot, door_pos=null) {
 
 export async function goToBed(bot) {
     /**
-     * Sleep in the nearest bed.
+     * Sleep in the nearest unoccupied bed.
      * @param {MinecraftBot} bot, reference to the minecraft bot.
      * @returns {Promise<boolean>} true if the bed was found, false otherwise.
      * @example
@@ -1226,7 +1226,7 @@ export async function goToBed(bot) {
      **/
     const beds = bot.findBlocks({
         matching: (block) => {
-            return block.name.includes('bed');
+            return block.name.includes('bed') && !block._properties?.occupied;
         },
         maxDistance: 32,
         count: 1
