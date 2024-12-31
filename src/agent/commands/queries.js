@@ -111,7 +111,11 @@ export const queryList = [
         },
         perform: function (agent, item) {
             let recipe = world.getRecipe(agent.bot, item);
-            return `RECIPE:\nItem to craft: ${recipe.item}\nMaterials: ${recipe.materials.join(', ')}`;
+            if (recipe.error) {
+                return `RECIPE:\nItem to craft: ${recipe.item}\nError: ${recipe.error}`;
+            } else {
+                return `RECIPE:\nItem to craft: ${recipe.item}\nMaterials: ${recipe.materials?.join(', ')}`;
+            }
         }
     },
     {

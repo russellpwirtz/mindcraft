@@ -189,16 +189,29 @@ export function getRecipe(bot, item) {
 
   let itemsToCraft = mc.getAllItems().filter(i => i.name === item);
   if (!itemsToCraft || itemsToCraft.length < 1) {
-    return ["Error: unable to find item."];
+    return {"item": item, "error": "Unable to find item."};
   }
   
   let itemIdToCraft = itemsToCraft[0].id;
+  let itemNameToCraft = itemsToCraft[0].name;
+
   let allRecipes = bot.recipesAll(itemIdToCraft,null,1,null);
   if (!allRecipes || allRecipes.length < 1) {
-    return ["Error: unable to find recipe for item."];
+    return {"item": itemNameToCraft, "error": "Unable to find recipe"};
   }
 
-  let recipesList = allRecipes.map(recipes=>recipes.inShape.flatMap(itemList=>itemList.filter(item=>item.id!==-1).map(item => item.id)));
+  let recipesList = allRecipes.map(recipes => {
+    if (recipes.ingredients) {
+      return [recipes.ingredients.map(ingredient=>ingredient.id)];
+    } else if (recipes.inShape) {
+      return recipes.inShape.flatMap(itemList=>itemList.filter(item=>item.id!==-1).map(item => item.id));
+    }
+  });
+
+  if (!recipesList || recipesList.length < 1) {
+    return {"item": itemNameToCraft, "error": "Unable to parse recipe."};
+  }
+  
   let firstRecipe = recipesList[0];
   res.materials.push(...firstRecipe.map(recipeItemId => mc.getAllItems().filter(item => recipeItemId === item.id).map(i => i.name)));
 
