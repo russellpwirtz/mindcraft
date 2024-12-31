@@ -170,6 +170,40 @@ export function getInventoryCounts(bot) {
     return inventory;
 }
 
+export function getRecipe(bot, item) {
+  /**
+   * Get a recipe of the item to be crafted.
+   * @param {Bot} bot - The bot to get the craftable items for.
+   * @returns {{"item": String, "materials": []}} - A map of the crafting item name and a list of the materials required.
+   * @example
+   * let recipe = world.getRecipe(bot, 'stone_pickaxe');
+   **/
+  let res = {};
+
+  if (item === "hoe") {
+    item = "stone_hoe";
+  }
+
+  res.item = item;
+  res.materials = [];
+
+  let itemsToCraft = mc.getAllItems().filter(i => i.name === item);
+  if (!itemsToCraft || itemsToCraft.length < 1) {
+    return ["Error: unable to find item."];
+  }
+  
+  let itemIdToCraft = itemsToCraft[0].id;
+  let allRecipes = bot.recipesAll(itemIdToCraft,null,1,null);
+  if (!allRecipes || allRecipes.length < 1) {
+    return ["Error: unable to find recipe for item."];
+  }
+
+  let recipesList = allRecipes.map(recipes=>recipes.inShape.flatMap(itemList=>itemList.filter(item=>item.id!==-1).map(item => item.id)));
+  let firstRecipe = recipesList[0];
+  res.materials.push(...firstRecipe.map(recipeItemId => mc.getAllItems().filter(item => recipeItemId === item.id).map(i => i.name)));
+
+  return res;
+}
 
 export function getCraftableItems(bot) {
     /**
@@ -340,9 +374,9 @@ function getBlockMetadataString(bot, block) {
         return "";
     } else if (block.name === "farmland") {
         let above = bot.blockAt(block.position.offset(0,1,0));
-        return(`Is ${block.metadata > 4 ? "" : " NOT "}watered. ${getCropDetails(above)}`)
+        return(`Is ${block.metadata > 4 ? "" : "NOT "}watered. ${getCropDetails(above)}`)
     } else if (crops.includes(block?.name)) {
-        return(`Is ${isHarvestableCrop(block) ? "" : " NOT "}ready for harvest.`)
+        return(`Is ${isHarvestableCrop(block) ? "" : "NOT "}ready for harvest.`)
     } else if (block.name.includes("_sign")) {
         let frontText = block.getSignText()[0].replaceAll('\n', '|');
         let backText = block.getSignText()[1].replaceAll('\n', '|');

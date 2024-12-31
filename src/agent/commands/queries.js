@@ -41,7 +41,7 @@ export const queryList = [
             let action = agent.actions.currentActionLabel;
             if (agent.isIdle())
                 action = 'Idle';
-            res += `\- Current Action: ${action}`;
+            res += `\n- Current Action: ${action}`;
 
 
             let players = world.getNearbyPlayerNames(bot);
@@ -98,6 +98,20 @@ export const queryList = [
                 res += ': none';
             }
             return pad(res);
+        }
+    },
+    {
+      name: "!recipe",
+      description: "Get the proper item name and materials required to craft an item.",
+      params: {
+          item: { 
+              type: 'string', 
+              description: 'The name of the item to craft.' 
+          }
+        },
+        perform: function (agent, item) {
+            let recipe = world.getRecipe(agent.bot, item);
+            return `RECIPE:\nItem to craft: ${recipe.item}\nMaterials: ${recipe.materials.join(', ')}`;
         }
     },
     {
