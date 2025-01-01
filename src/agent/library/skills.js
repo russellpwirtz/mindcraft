@@ -1248,58 +1248,101 @@ export async function goToBed(bot) {
     return true;
 }
 
+
+export async function till(bot, x, y, z) {
+    /**
+     * Till the block at the given location
+     * @param {MinecraftBot} bot, reference to the minecraft bot.
+     * @param {number} x, the x coordinate to seed.
+     * @param {number} y, the y coordinate to seed.
+     * @param {number} z, the z coordinate to seed.
+     * @returns {Promise<boolean>} true if the block was activated, false otherwise.
+     * @example
+     * await skills.till(bot, position.x, position.y, position.z);
+     * **/
+    console.log(`Tilling location: ${x}, ${y}, ${z}`);
+    x = Math.round(x);
+    y = Math.round(y);
+    z = Math.round(z);
+    let block = bot.blockAt(new Vec3(x, y, z));
+    while (block?.name === "air") {
+        block = bot.blockAt(block.position.offset(new Vec3(0,-1,0)));
+    }
+    if (!block || (block.name !== 'dirt' && block.name !== "grass_block")) {
+        log(bot, `Cannot till ${block?.name}, must be dirt or grass block.`);
+        return false;
+    }
+    if (bot.entity.position.distanceTo(block.position) > 2.5) {
+        let pos = block.position;
+        bot.pathfinder.setMovements(new pf.Movements(bot));
+        await bot.pathfinder.goto(new pf.goals.GoalNear(pos.x, pos.y, pos.z, 2));
+    }
+
+    let hoe = bot.inventory.items().find(item => item.name.includes("_hoe"));
+    if (!hoe) {
+        log(bot, `Cannot find hoe to equip, can't till!`);
+        return false;
+    }
+    await bot.equip(hoe, 'hand');
+
+    await bot.activateBlock(block);
+    log(bot, `Tilled ${block.name} at x:${block.position.x.toFixed(1)}, y:${block.position.y.toFixed(1)}, z:${block.position.z.toFixed(1)}.`);
+    return true;
+}
+
+
 export async function sow(bot, x, y, z, seedType='wheat_seeds') {
-  /**
-   * Plant the given seed type.
-   * @param {MinecraftBot} bot, reference to the minecraft bot.
-   * @param {number} x, the x coordinate to till.
-   * @param {number} y, the y coordinate to till.
-   * @param {number} z, the z coordinate to till.
-   * @param {string} seedType, the type of crop to plant. Defaults to wheat_seeds.
-   * @returns {Promise<boolean>} true if the ground was sown, false otherwise.
-   * @example
-   * let position = world.getPosition(bot);
-   * await skills.sow(bot, position.x, position.y, position.x, "wheat_seeds");
-   **/
-  console.log(`Sowing location: ${x}, ${y}, ${z}`);
-  x = Math.round(x);
-  y = Math.round(y);
-  z = Math.round(z);
-  let block = bot.blockAt(new Vec3(x, y, z));
-  while (block?.name === "air") {
-    block = bot.blockAt(block.position.offset(new Vec3(0,-1,0)));
-  }
-  if (!block || block.name !== 'farmland') {
-      log(bot, `Cannot sow ${block?.name}, must be farmland.`);
-      return false;
-  }
-  let above = bot.blockAt(block.position.offset(new Vec3(0, 1, 0)));
-  console.log(`Sowing ${block.name}; Block above: ${above?.name}`);
-  if (above && above.name !== 'air') {
-      log(bot, `Warning, can't sow; there is ${above.name} above the block.`);
-      return false;
-  }
-  // if distance is too far, move to the block
-  if (bot.entity.position.distanceTo(block.position) > 2.5) {
-      let pos = block.position;
-      bot.pathfinder.setMovements(new pf.Movements(bot));
-      await bot.pathfinder.goto(new pf.goals.GoalNear(pos.x, pos.y, pos.z, 2));
-  }
+    /**
+     * Plant the given seed type.
+     * @param {MinecraftBot} bot, reference to the minecraft bot.
+     * @param {number} x, the x coordinate to seed.
+     * @param {number} y, the y coordinate to seed.
+     * @param {number} z, the z coordinate to seed.
+     * @param {string} seedType, the type of crop to plant. Defaults to wheat_seeds.
+     * @returns {Promise<boolean>} true if the ground was sown, false otherwise.
+     * @example
+     * let position = world.getPosition(bot);
+     * await skills.sow(bot, position.x, position.y, position.z, "wheat_seeds");
+     **/
+    console.log(`Sowing location: ${x}, ${y}, ${z}`);
+    x = Math.round(x);
+    y = Math.round(y);
+    z = Math.round(z);
+    let block = bot.blockAt(new Vec3(x, y, z));
+    while (block?.name === "air") {
+        block = bot.blockAt(block.position.offset(new Vec3(0,-1,0)));
+    }
+    if (!block || block.name !== 'farmland') {
+        log(bot, `Cannot sow ${block?.name}, must be farmland.`);
+        return false;
+    }
+    let above = bot.blockAt(block.position.offset(new Vec3(0, 1, 0)));
+    console.log(`Sowing ${block.name}; Block above: ${above?.name}`);
+    if (above && above.name !== 'air') {
+        log(bot, `Warning, can't sow; there is ${above.name} above the block.`);
+        return false;
+    }
+    // if distance is too far, move to the block
+    if (bot.entity.position.distanceTo(block.position) > 3.5) {
+        let pos = block.position;
+        bot.pathfinder.setMovements(new pf.Movements(bot));
+        await bot.pathfinder.goto(new pf.goals.GoalNear(pos.x, pos.y, pos.z, 3));
+    }
 
-  if (seedType.endsWith('seed'))
-      seedType += 's'; // fixes common mistake
-  let seeds = bot.inventory.items().find(item => item.name === seedType);
-  if (!seeds) {
-      log(bot, `No ${seedType} to plant.`);
-      return false;
-  }
-  await bot.equip(seeds, 'hand');
+    if (seedType.endsWith('seed'))
+        seedType += 's'; // fixes common mistake
+    let seeds = bot.inventory.items().find(item => item.name === seedType);
+    if (!seeds) {
+        log(bot, `No ${seedType} to plant.`);
+        return false;
+    }
+    await bot.equip(seeds, 'hand');
 
-  try {
-    await bot.placeBlock(block, new Vec3(0, 1, 0));
-  } catch (e) {
-    log(bot, `Sorry, had a problem while trying to sow: ${e.message}.`);
-  }
+    try {
+        await bot.placeBlock(block, new Vec3(0, 1, 0));
+    } catch (e) {
+        log(bot, `Sorry, had a problem while trying to sow: ${e.message}.`);
+    }
 }
 
 let crops = ["wheat", "beetroot", "potatoes", "carrots"]
@@ -1308,13 +1351,13 @@ export async function harvest(bot, x, y, z) {
   /**
    * Harvest the ground at the given position.
    * @param {MinecraftBot} bot, reference to the minecraft bot.
-   * @param {number} x, the x coordinate to till.
-   * @param {number} y, the y coordinate to till.
-   * @param {number} z, the z coordinate to till.
+   * @param {number} x, the x coordinate to harvest.
+   * @param {number} y, the y coordinate to harvest.
+   * @param {number} z, the z coordinate to harvest.
    * @returns {Promise<boolean>} true if the ground was harvested, false otherwise.
    * @example
    * let position = world.getPosition(bot);
-   * await skills.harvest(bot, position.x, position.y, position.x);
+   * await skills.harvest(bot, position.x, position.y, position.z);
    **/
   console.log(`Harvest location: ${x}, ${y}, ${z}`);
   x = Math.round(x);
@@ -1348,10 +1391,10 @@ export async function harvest(bot, x, y, z) {
   }
 
   // if distance is too far, move to the block
-  if (bot.entity.position.distanceTo(block.position) > 2.5) {
+  if (bot.entity.position.distanceTo(block.position) > 3.5) {
     let pos = block.position;
     bot.pathfinder.setMovements(new pf.Movements(bot));
-    await bot.pathfinder.goto(new pf.goals.GoalNear(pos.x, pos.y, pos.z, 2));
+    await bot.pathfinder.goto(new pf.goals.GoalNear(pos.x, pos.y, pos.z, 3));
   }
   let hoe = bot.inventory.items().find(item => item.name.includes('hoe'));
   if (!hoe) {

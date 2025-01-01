@@ -320,13 +320,25 @@ export const actionsList = [
         })
     },
     {
+        name: '!tillLocation',
+        description: 'Till a grass block to turn it into farmland. ',
+        params: { 
+          'x_coord': { type: 'string', description: 'The x coordinate to till.' },
+          'y_coord': { type: 'string', description: 'The y coordinate to till.' },
+          'z_coord': { type: 'string', description: 'The z coordinate to till.' },
+        },
+        perform: runAsAction(async (agent, x_coord, y_coord, z_coord, type) => {
+            await skills.till(agent.bot, x_coord, y_coord, z_coord);
+        })
+      },
+    {
       name: '!sowLocation',
       description: 'Sow the crop type in the specified location. ',
       params: { 
-        'x_coord': { type: 'string', description: 'The x coordinate to farm.' },
-        'y_coord': { type: 'string', description: 'The y coordinate to farm.' },
-        'z_coord': { type: 'string', description: 'The z coordinate to farm.' },
-        'type': { type: 'ItemName', description: 'The seed type to saw, e.g. wheat_seeds.' },
+        'x_coord': { type: 'string', description: 'The x coordinate to seed.' },
+        'y_coord': { type: 'string', description: 'The y coordinate to seed.' },
+        'z_coord': { type: 'string', description: 'The z coordinate to seed.' },
+        'type': { type: 'ItemName', description: 'The seed type to sow, e.g. wheat_seeds.' },
       },
       perform: runAsAction(async (agent, x_coord, y_coord, z_coord, type) => {
           await skills.sow(agent.bot, x_coord, y_coord, z_coord, type);
