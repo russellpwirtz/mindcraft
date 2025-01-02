@@ -295,7 +295,7 @@ export function getNearbyPlayerNames(bot) {
     return found;
 }
 
-export function getNearbyBlockDetails(bot, distance=16, max_per_type=2) {
+export function getNearbyBlockDetails(bot, block_types=null, distance=16, max_per_type=2) {
     /**
      * Get a list of nearby blocks and their details such as location and metadata.
      * @param {Bot} bot - The bot to get nearby blocks for.
@@ -306,7 +306,7 @@ export function getNearbyBlockDetails(bot, distance=16, max_per_type=2) {
      * let blocks = world.getNearbyBlockTypes(bot);
      **/
     const blockCounts = new Map();
-    const result = getNearestBlocks(bot, null, distance).filter(block => {
+    const result = getNearestBlocks(bot, block_types, distance).filter(block => {
       const blockKey = getBlockKey(bot, block);
       const count = blockCounts.get(blockKey) || 0;
       blockCounts.set(blockKey, count + 1);
