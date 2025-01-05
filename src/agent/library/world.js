@@ -380,15 +380,14 @@ export function getBlockKey(bot, block) {
     return block?.name;
 }
 
-let crops = ["wheat", "beetroot", "potatoes", "carrots"]
-
+let crops = ["wheat", "beetroots", "potatoes", "carrots", "melon", "pumpkin"]
 function getBlockMetadataString(bot, block) {
     if (!block) {
         return "";
     } else if (block.name === "farmland") {
         let above = bot.blockAt(block.position.offset(0,1,0));
         return(`Is ${block.metadata > 4 ? "" : "NOT "}watered. ${getCropDetails(above)}`)
-    } else if (crops.includes(block?.name)) {
+    } else if (crops.includes(block.name)) {
         return(`Is ${isHarvestableCrop(block) ? "" : "NOT "}ready for harvest.`)
     } else if (block.name.includes("_sign")) {
         let frontText = block.getSignText()[0].replaceAll('\n', '|');
@@ -407,11 +406,25 @@ function getCropDetails(block) {
 }
 
 function isHarvestableCrop(block) {
-    if (!block || !block.metadata) {
-        return false;
+    if (!block) {
+      return false;
     }
+
     if (!crops.includes(block.name)) {
+      return false;
+    }
+
+    if (block.name === "melon" || block.name === "pumpkin") {
+      return true;
+    }
+      
+    if (!block.metadata) {
         return false;
     }
-    return block.name === "beetroot" ? block.metadata === 3 : block.metadata === 7;
+
+    if (block.name === "beetroots") {
+      return block.metadata === 3;
+    } else {
+      return block.metadata === 7;
+    }
 }

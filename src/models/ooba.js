@@ -1,7 +1,7 @@
 import OpenAIApi from 'openai';
 import { getKey, hasKey } from '../utils/keys.js';
 
-export class Tabby {
+export class Ooba {
     constructor(model_name, url) {
         this.model_name = model_name;
 
@@ -9,7 +9,7 @@ export class Tabby {
         if (url)
             config.baseURL = url;
 
-        config.apiKey = getKey('TABBY_API_KEY');
+        config.apiKey = getKey('OOBA_API_KEY');
 
         this.openai = new OpenAIApi(config);
         this.contextLengthHistory = [];
@@ -30,11 +30,18 @@ export class Tabby {
 
         let res = null;
         try {
-            // console.log(`--- Making TabbyAPI request:\n${JSON.stringify(messages)}`);
-            console.log(`--> Making TabbyAPI request...`);
+            // console.log(`--- Making Ooba request:\n${JSON.stringify(messages)}`);
+            console.log(`==> Making Ooba request...`);
             let completion = await this.openai.chat.completions.create(pack);
             if (completion.choices[0].finish_reason == 'length')
                 throw new Error('Context length exceeded'); 
+
+            var message = '';
+            if (completion.choices[0].message) {
+              message = completion.choices[0].message.content;
+            } else if (completion.choices[0].text) {
+              message = completion.choices[0].text;
+            }
             let durationSeconds = Math.floor(Date.now() / 1000) - startSeconds;
             this.responseTimeHistory.push(durationSeconds);
             if (durationSeconds > this.topResponseTime) {
@@ -52,9 +59,10 @@ export class Tabby {
                 return accumulator + currentValue;
               }, 0);
             var avgContextLength = (contextLengthSum / this.contextLengthHistory.length).toFixed(0);
-            console.log(`<-- Tabby response: "${completion.choices[0].message.content}"`);
-            console.log(`||| Tabby stats: Response time: ${durationSeconds}s | Total tokens used: ${completion.usage.total_tokens} | Prompt tokens: ${completion.usage.total_tokens} | Completion tokens: ${completion.usage.completion_tokens} | Avg Response Time: ${avgResponseTime}s | Avg Context Length: ${avgContextLength} | Top Context Length: ${this.topContextLength} | Top Response Time: ${this.topResponseTime}s |||`);
-            res = completion.choices[0].message.content;
+
+            console.log(`<== Ooba response: "${message}"`);
+            console.log(`||| Ooba stats: Response time: ${durationSeconds}s | Total tokens used: ${completion.usage.total_tokens} | Prompt tokens: ${completion.usage.total_tokens} | Completion tokens: ${completion.usage.completion_tokens} | Avg Response Time: ${avgResponseTime}s | Avg Context Length: ${avgContextLength} | Top Context Length: ${this.topContextLength} | Top Response Time: ${this.topResponseTime}s |||`);
+            res = message;
         }
         catch (err) {
             if ((err.message == 'Context length exceeded' || err.code == 'context_length_exceeded') && turns.length > 1) {

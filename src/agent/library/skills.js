@@ -949,7 +949,7 @@ export async function goToPosition(bot, x, y, z, min_distance=2) {
     }
     bot.pathfinder.setMovements(new pf.Movements(bot));
     await bot.pathfinder.goto(new pf.goals.GoalNear(x, y, z, min_distance));
-    log(bot, `You have reached at ${x}, ${y}, ${z}.`);
+    log(bot, `${bot.username} has reached location ${x}, ${y}, ${z}.`);
     return true;
 }
 
@@ -1029,7 +1029,7 @@ export async function goToPlayer(bot, username, distance=3) {
     bot.pathfinder.setMovements(move);
     await bot.pathfinder.goto(new pf.goals.GoalFollow(player, distance), true);
 
-    log(bot, `You have reached ${username}.`);
+    log(bot, `${bot.username} has reached ${username}.`);
 }
 
 
@@ -1345,7 +1345,7 @@ export async function sow(bot, x, y, z, seedType='wheat_seeds') {
     }
 }
 
-let crops = ["wheat", "beetroot", "potatoes", "carrots"]
+let crops = ["wheat", "beetroots", "potatoes", "carrots", "melon", "pumpkin"]
 
 export async function harvest(bot, x, y, z) {
   /**
@@ -1375,14 +1375,16 @@ export async function harvest(bot, x, y, z) {
     return false;
   }
 
-  if (block.name === "wheat" || block.name === "carrots" || block.name === "potatoes") {
-    if (block.metadata < 7) {
-      log(bot, `Sorry, ${block.name} isn't ready to harvest! Crop maturity: [${block.metadata}/7]`);
-      return false;
-    } 
-  } else if (block.name === "beetroot") {
+  if (block.name === "melon" || block.name === "pumpkin") {
+    // can be harvested without waiting
+  } else if (block.name === "beetroots") {
     if (block.metadata < 3) {
       log(bot, `Sorry, ${block.name} isn't ready to harvest! Crop maturity: [${block.metadata}/3]`);
+      return false;
+    } 
+  } else if (crops.includes(block.name)) {
+    if (block.metadata < 7) {
+      log(bot, `Sorry, ${block.name} isn't ready to harvest! Crop maturity: [${block.metadata}/7]`);
       return false;
     } 
   } else {

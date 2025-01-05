@@ -16,6 +16,7 @@ import { HuggingFace } from '../models/huggingface.js';
 import { Qwen } from "../models/qwen.js";
 import { Grok } from "../models/grok.js";
 import { Tabby } from "../models/tabby.js";
+import { Ooba } from '../models/ooba.js';
 
 export class Prompter {
     constructor(agent, fp) {
@@ -33,6 +34,7 @@ export class Prompter {
         
         let name = this.profile.name;
         let chat = this.profile.model;
+        let summary = this.profile.summary_model;
         this.cooldown = this.profile.cooldown ? this.profile.cooldown : 0;
         this.last_prompt_time = 0;
         this.awaiting_coding = false;
@@ -63,6 +65,8 @@ export class Prompter {
                 chat.api = 'xai';
             else if (chat.model.includes('tabby'))
               chat.api = 'tabby';
+            else if (chat.model.includes('ooba'))
+              chat.api = 'ooba';
             else
                 chat.api = 'ollama';
         }
@@ -92,8 +96,17 @@ export class Prompter {
             this.chat_model = new Grok(chat.model, chat.url);
         else if (chat.api === 'tabby')
           this.chat_model = new Tabby(chat.model, chat.url);
+        else if (chat.api === 'ooba')
+          this.chat_model = new Ooba(chat.model, chat.url);
         else
             throw new Error('Unknown API:', api);
+
+        if (summary && summary.api === 'ooba') {
+          this.summary_model = new Ooba(summary.model, summary.url);
+        } else {
+          // TODO: other model loaders
+          this.summary_model = this.chat_model;
+        }
 
         let embedding = this.profile.embedding;
         if (embedding === undefined) {
@@ -274,7 +287,7 @@ export class Prompter {
         await this.checkCooldown();
         let prompt = this.profile.saving_memory;
         prompt = await this.replaceStrings(prompt, null, null, to_summarize);
-        return await this.chat_model.sendRequest([], prompt);
+        return await this.summary_model.sendRequest([], prompt);
     }
 
     async promptShouldRespondToBot(new_message) {
