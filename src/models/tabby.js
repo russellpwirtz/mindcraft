@@ -53,7 +53,11 @@ export class Tabby {
               }, 0);
             var avgContextLength = (contextLengthSum / this.contextLengthHistory.length).toFixed(0);
             console.log(`<-- Tabby response: "${completion.choices[0].message.content}"`);
-            console.log(`||| Tabby stats: Response time: ${durationSeconds}s | Total tokens used: ${completion.usage.total_tokens} | Prompt tokens: ${completion.usage.total_tokens} | Completion tokens: ${completion.usage.completion_tokens} | Avg Response Time: ${avgResponseTime}s | Avg Context Length: ${avgContextLength} | Top Context Length: ${this.topContextLength} | Top Response Time: ${this.topResponseTime}s |||`);
+
+            const green = '\x1b[32m';
+            const reset = '\x1b[0m';
+            console.log(`${green}||| Tabby stats ||| Response time: ${durationSeconds}s | Avg Response Time: ${avgResponseTime}s | Top Response Time: ${this.topResponseTime}s ||| Prompt Tokens: ${completion.usage.total_tokens} | Completion Tokens: ${completion.usage.completion_tokens} | Total Context: ${completion.usage.total_tokens} | Avg Context: ${avgContextLength} | Top Context: ${this.topContextLength} |||${reset}`);
+
             res = completion.choices[0].message.content;
         }
         catch (err) {

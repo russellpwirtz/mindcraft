@@ -1363,8 +1363,14 @@ export async function harvest(bot, x, y, z) {
   x = Math.round(x);
   y = Math.round(y);
   z = Math.round(z);
-  let block = bot.blockAt(new Vec3(x, y, z));
-  let above = bot.blockAt(new Vec3(x, y+1, z));
+  var block = bot.blockAt(new Vec3(x, y, z));
+  var above = bot.blockAt(new Vec3(x, y+1, z));
+
+  while (block?.name === "air") {
+    above = block;
+    block = bot.blockAt(block.position.offset(new Vec3(0,-1,0)));
+  }
+
   console.log(`Block: ${block?.name} Above: ${above?.name}`);
 
   if (crops.includes(above?.name)) 

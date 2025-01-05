@@ -297,7 +297,7 @@ export class Agent {
 
                 let execute_res = await executeCommand(this, res);
 
-                console.log('Agent executed:', command_name, 'and got:', execute_res);
+                console.log(`\x1b[44m${this.bot.username}\x1b[0m \x1b[33mexecuted: ${command_name} and got: ${execute_res}\x1b[0m`);
                 used_command = true;
 
                 if (execute_res)

@@ -57,6 +57,9 @@ export const queryList = [
                 res += "\nSAVED PLACES\n- ";
                 res += agent.memory_bank.getKeys().replaceAll(', ', '\n- ');
             }
+            if (world.getNearestBlock(agent.bot, 'crafting_table')) {
+                res += getCraftableString(agent);
+            }
             return pad(res);
         }
     },
@@ -108,15 +111,7 @@ export const queryList = [
         name: "!craftable",
         description: "Get the craftable items with the bot's inventory.",
         perform: function (agent) {
-            let craftable = world.getCraftableItems(agent.bot);
-            let res = 'CRAFTABLE_ITEMS';
-            for (const item of craftable) {
-                res += `\n- ${item}`;
-            }
-            if (res == 'CRAFTABLE_ITEMS') {
-                res += ': none';
-            }
-            return pad(res);
+            return getCraftableString(agent);
         }
     },
     {
@@ -181,4 +176,16 @@ export const queryList = [
     }
 ];
 
+
+function getCraftableString(agent) {
+    let craftable = world.getCraftableItems(agent.bot);
+    let res = 'CRAFTABLE_ITEMS';
+    for (const item of craftable) {
+        res += `\n- ${item}`;
+    }
+    if (res == 'CRAFTABLE_ITEMS') {
+        res += ': none';
+    }
+    return pad(res);
+}
 

@@ -61,7 +61,9 @@ export class Ooba {
             var avgContextLength = (contextLengthSum / this.contextLengthHistory.length).toFixed(0);
 
             console.log(`<== Ooba response: "${message}"`);
-            console.log(`||| Ooba stats: Response time: ${durationSeconds}s | Total tokens used: ${completion.usage.total_tokens} | Prompt tokens: ${completion.usage.total_tokens} | Completion tokens: ${completion.usage.completion_tokens} | Avg Response Time: ${avgResponseTime}s | Avg Context Length: ${avgContextLength} | Top Context Length: ${this.topContextLength} | Top Response Time: ${this.topResponseTime}s |||`);
+            const cyan = '\x1b[36m';
+            const reset = '\x1b[0m';
+            console.log(`${cyan}||| Ooba stats ||| Response time: ${durationSeconds}s | Avg Response Time: ${avgResponseTime}s | Top Response Time: ${this.topResponseTime}s ||| Prompt Tokens: ${completion.usage.total_tokens} | Completion Tokens: ${completion.usage.completion_tokens} | Total Context: ${completion.usage.total_tokens} | Avg Context: ${avgContextLength} | Top Context: ${this.topContextLength} |||${reset}`);
             res = message;
         }
         catch (err) {
