@@ -71,25 +71,6 @@ export const queryList = [
         }
     },
     {
-        name: "!scanFarm",
-        description: "Get details about the nearby farm blocks.",
-        perform: function (agent) {
-            let bot = agent.bot;
-            let res = 'SCAN_FARM';
-            let block_types = ["farmland", "wheat", "wheat_seeds", "beetroot_seeds", "melon_seeds", "grass_block", "melon", "melon_seeds", "beetroots", "potatoes", "carrots", "pumpkin_seeds", "pumpkin"]
-            let blocks = world.getNearbyBlockDetails(bot, block_types, 16, 16);
-            for (let i = 0; i < blocks.length; i++) {
-                res += `\n- ${blocks[i]}`;
-            }
-            if (blocks.length == 0) {
-                res += ': none';
-            }
-            res += `\nYour location: [${Math.round(bot.entity.position.x)},${Math.round(bot.entity.position.y)},${Math.round(bot.entity.position.z)}]`;
-            res += getAdjacentBlocksString(bot); 
-            return pad(res);
-        }
-    },
-    {
         name: "!nearbyBlocks",
         description: "Get the blocks near the bot.",
         perform: function (agent) {
@@ -175,6 +156,31 @@ export const queryList = [
         }
     }
 ];
+
+
+// queries are commands that just return strings and don't affect anything in the world
+// role queries vary per role so aren't included by default
+export const roleQueryList = [
+    {
+        name: "!scanFarm",
+        description: "Get details about the nearby farm blocks.",
+        perform: function (agent) {
+            let bot = agent.bot;
+            let res = 'SCAN_FARM';
+            let block_types = ["composter", "dirt_path", "farmland", "wheat", "wheat_seeds", "beetroot_seeds", "melon_seeds", "grass_block", "melon", "melon_seeds", "beetroots", "potatoes", "carrots", "pumpkin_seeds", "pumpkin"]
+            let blocks = world.getNearbyBlockDetails(bot, block_types, 16, 16);
+            for (let i = 0; i < blocks.length; i++) {
+                res += `\n- ${blocks[i]}`;
+            }
+            if (blocks.length == 0) {
+                res += ': none';
+            }
+            res += `\nYour location: [${Math.round(bot.entity.position.x)},${Math.round(bot.entity.position.y)},${Math.round(bot.entity.position.z)}]`;
+            res += getAdjacentBlocksString(bot); 
+            return pad(res);
+        }
+    },
+]
 
 
 function getCraftableString(agent) {

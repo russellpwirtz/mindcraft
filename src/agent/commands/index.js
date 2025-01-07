@@ -1,6 +1,7 @@
 import { getBlockId, getItemId } from "../../utils/mcdata.js";
 import { actionsList, roleActionsList as roleActionsList } from './actions.js';
 import { queryList } from './queries.js';
+import { roleQueryList } from './queries.js';
 
 let suppressNoDomainWarning = false;
 
@@ -14,8 +15,9 @@ export function getCommand(name) {
     return commandMap[name];
 }
 
+const roleCommandList = roleQueryList.concat(roleActionsList);
 const roleCommandMap = {};
-for (let command of roleActionsList) {
+for (let command of roleCommandList) {
   roleCommandMap[command.name] = command;
 }
 
@@ -249,5 +251,6 @@ export function getCommandDocs(blacklist=null, roleCommands=[]) {
             }
         }
     }
+    //console.log(`------\n------\n${docs}------\n------\n`)
     return docs + '*\n';
 }
