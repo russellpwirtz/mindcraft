@@ -16,6 +16,7 @@ import { GroqCloudAPI } from '../models/groq.js';
 import { HuggingFace } from '../models/huggingface.js';
 import { Qwen } from "../models/qwen.js";
 import { Grok } from "../models/grok.js";
+import { DeepSeek } from '../models/deepseek.js';
 import { Tabby } from "../models/tabby.js";
 import { Ooba } from '../models/ooba.js';
 
@@ -72,6 +73,8 @@ export class Prompter {
                 chat.api = 'qwen';
             else if (chat.model.includes('grok'))
                 chat.api = 'xai';
+            else if (chat.model.includes('deepseek'))
+                chat.api = 'deepseek';
             else if (chat.model.includes('tabby'))
               chat.api = 'tabby';
             else if (chat.model.includes('ooba'))
@@ -103,6 +106,8 @@ export class Prompter {
             this.chat_model = new Qwen(chat.model, chat.url);
         else if (chat.api === 'xai')
             this.chat_model = new Grok(chat.model, chat.url);
+        else if (chat.api === 'deepseek')
+            this.chat_model = new DeepSeek(chat.model, chat.url);
         else if (chat.api === 'tabby')
           this.chat_model = new Tabby(chat.model, chat.url);
         else if (chat.api === 'ooba')
@@ -310,7 +315,7 @@ export class Prompter {
                 continue;
             }
             if (current_msg_time !== this.most_recent_msg_time) {
-                console.warn(this.agent.name + ' recieved new message while generating, discarding old response.');
+                console.warn(this.agent.name + ' received new message while generating, discarding old response.');
                 return '';
             }
             return generation;

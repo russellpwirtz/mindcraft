@@ -13,6 +13,7 @@ export const queryList = [
             let pos = bot.entity.position;
             // display position to 2 decimal places
             res += `\n- Position: x: ${pos.x.toFixed(2)}, y: ${pos.y.toFixed(2)}, z: ${pos.z.toFixed(2)}`;
+            // Gameplay
             res += `\n- Gamemode: ${bot.game.gameMode}`;
             res += `\n- Health: ${Math.round(bot.health)} / 20`;
             res += `\n- Hunger: ${Math.round(bot.food)} / 20`;
@@ -28,6 +29,8 @@ export const queryList = [
             // res += `\n- Artficial light: ${block.skyLight}`;
             // res += `\n- Sky light: ${block.light}`;
             // light properties are bugged, they are not accurate
+            res += '\n- ' + world.getSurroundingBlocks(bot).join('\n- ')
+            res += `\n- First Solid Block Above Head: ${world.getFirstBlockAboveHead(bot, null, 32)}`;
 
             if (bot.time.timeOfDay < 6000) {
                 res += '\n- Time: Morning';
@@ -82,9 +85,13 @@ export const queryList = [
             }
             if (blocks.length == 0) {
                 res += ': none';
+            } else {
+                // Environmental Awareness
+                res += '\n- ' + world.getSurroundingBlocks(bot).join('\n- ')
+                res += `\n- First Solid Block Above Head: ${world.getFirstBlockAboveHead(bot, null, 32)}`;
+                res += `\nYour location: [${Math.round(bot.entity.position.x)},${Math.round(bot.entity.position.y)},${Math.round(bot.entity.position.z)}]`;
+                res += getAdjacentBlocksString(bot); 
             }
-            res += `\nYour location: [${Math.round(bot.entity.position.x)},${Math.round(bot.entity.position.y)},${Math.round(bot.entity.position.z)}]`;
-            res += getAdjacentBlocksString(bot); 
             return pad(res);
         }
     },
