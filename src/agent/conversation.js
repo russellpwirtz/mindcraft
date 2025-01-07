@@ -44,7 +44,7 @@ class Conversation {
     }
 }
 
-const WAIT_TIME_START = 30000;
+const WAIT_TIME_START = 60000;
 class ConversationManager {
     constructor() {
         this.convos = {};

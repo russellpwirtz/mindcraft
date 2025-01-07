@@ -4,6 +4,7 @@ import { getCommandDocs } from './commands/index.js';
 import { getSkillDocs } from './library/index.js';
 import { stringifyTurns } from '../utils/text.js';
 import { getCommand } from './commands/index.js';
+import { getRoleCommand } from './commands/index.js';
 
 import { Gemini } from '../models/gemini.js';
 import { GPT } from '../models/gpt.js';
@@ -199,8 +200,13 @@ export class Prompter {
         if (prompt.includes('$ACTION')) {
             prompt = prompt.replaceAll('$ACTION', this.agent.actions.currentActionLabel);
         }
-        if (prompt.includes('$COMMAND_DOCS'))
-            prompt = prompt.replaceAll('$COMMAND_DOCS', getCommandDocs(this.agent.blocked_actions));
+        let roleCommandList = [];
+        if (prompt.includes('$COMMAND_DOCS')) {
+            if (this.profile.roles){
+                roleCommandList = await this.getRoleCommandList(this.profile.roles);
+            }
+            prompt = prompt.replaceAll('$COMMAND_DOCS', getCommandDocs(this.agent.blocked_actions, roleCommandList));
+        }
         if (prompt.includes('$CODE_DOCS'))
             prompt = prompt.replaceAll('$CODE_DOCS', getSkillDocs());
         if (prompt.includes('$EXAMPLES') && examples !== null)
@@ -241,6 +247,20 @@ export class Prompter {
             console.warn('Unknown prompt placeholders:', remaining.join(', '));
         }
         return prompt;
+    }
+
+    async getRoleCommandList(roles=[]) {
+        let result = [];
+        let role = roles[0]; // TODO: multiple roles
+        let roleJson = this.rolesMap[role];
+        let roleSkills = roleJson.skills;
+        for (let roleSkill of roleSkills) {
+            let command = await getRoleCommand(roleSkill);
+            if (command) {
+                result.push(command);
+            }
+        }
+        return result;
     }
 
     async checkCooldown() {
@@ -314,7 +334,14 @@ export class Prompter {
 
     async promptMemSaving(to_summarize) {
         await this.checkCooldown();
-        let prompt = this.profile.saving_memory;
+        let prompt = '';
+        if (this.profile.roles) {
+          let firstRole = this.profile.roles[0];
+          let roleJson = this.rolesMap[firstRole];
+          prompt = roleJson["saving_memory"].replaceAll("$JOB_NAME", firstRole);
+        } else {
+          prompt = this.profile.saving_memory;
+        }
         prompt = await this.replaceStrings(prompt, null, null, to_summarize);
         return await this.summary_model.sendRequest([], prompt);
     }

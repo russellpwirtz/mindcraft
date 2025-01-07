@@ -328,7 +328,7 @@ export async function isClearPath(bot, target) {
     movements.canDig = false;
     movements.canPlaceOn = false;
     let goal = new pf.goals.GoalNear(target.position.x, target.position.y, target.position.z, 1);
-    let path = await bot.pathfinder.getPathTo(movements, goal, 100);
+    let path = await bot.pathfinder.getPathTo(movements, goal, 1000);
     return path.status === 'success';
 }
 

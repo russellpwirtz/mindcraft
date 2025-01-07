@@ -1269,7 +1269,11 @@ export async function till(bot, x, y, z) {
         block = bot.blockAt(block.position.offset(new Vec3(0,-1,0)));
     }
     if (!block || (block.name !== 'dirt' && block.name !== "grass_block")) {
-        log(bot, `Cannot till ${block?.name}, must be dirt or grass block.`);
+        if (block?.name === "farmland") {
+            log(bot, `Cannot till ${block?.name}, it's already farmland! (Try using !sowLocation here).`);
+        } else {
+            log(bot, `Cannot till ${block?.name}, must be dirt or grass block.`);
+        }
         return false;
     }
     if (bot.entity.position.distanceTo(block.position) > 2.5) {
@@ -1310,10 +1314,15 @@ export async function sow(bot, x, y, z, seedType='wheat_seeds') {
     z = Math.round(z);
     let block = bot.blockAt(new Vec3(x, y, z));
     while (block?.name === "air") {
+        console.log("Unable to find block to sow, looking one block lower...");
         block = bot.blockAt(block.position.offset(new Vec3(0,-1,0)));
     }
     if (!block || block.name !== 'farmland') {
-        log(bot, `Cannot sow ${block?.name}, must be farmland.`);
+        if (block?.name === "grass_block" || block?.name === "dirt") {
+            log(bot, `Cannot sow ${block?.name}, must be farmland. (Try using !tillLocation here).`);
+        } else {
+            log(bot, `Cannot sow ${block?.name}, must be farmland.`);
+        }
         return false;
     }
     let above = bot.blockAt(block.position.offset(new Vec3(0, 1, 0)));

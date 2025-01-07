@@ -1,5 +1,5 @@
 import { getBlockId, getItemId } from "../../utils/mcdata.js";
-import { actionsList } from './actions.js';
+import { actionsList, roleActionsList as roleActionsList } from './actions.js';
 import { queryList } from './queries.js';
 
 let suppressNoDomainWarning = false;
@@ -12,6 +12,15 @@ for (let command of commandList) {
 
 export function getCommand(name) {
     return commandMap[name];
+}
+
+const roleCommandMap = {};
+for (let command of roleActionsList) {
+  roleCommandMap[command.name] = command;
+}
+
+export function getRoleCommand(name) {
+  return roleCommandMap[name];
 }
 
 const commandRegex = /!(\w+)(?:\(((?:-?\d+(?:\.\d+)?|true|false|"[^"]*")(?:\s*,\s*(?:-?\d+(?:\.\d+)?|true|false|"[^"]*"))*)\))?/
@@ -167,7 +176,7 @@ export function truncCommandMessage(message) {
 }
 
 export function isAction(name) {
-    return actionsList.find(action => action.name === name) !== undefined;
+    return actionsList.find(action => action.name === name) !== undefined || roleActionsList.find(action => action.name === name) !== undefined;
 }
 
 /**
@@ -214,7 +223,7 @@ export async function executeCommand(agent, message) {
     }
 }
 
-export function getCommandDocs(blacklist=null) {
+export function getCommandDocs(blacklist=null, roleCommands=[]) {
     const typeTranslations = {
         //This was added to keep the prompt the same as before type checks were implemented.
         //If the language model is giving invalid inputs changing this might help.
@@ -227,7 +236,8 @@ export function getCommandDocs(blacklist=null) {
     let docs = `\n*COMMAND DOCS\n You can use the following commands to perform actions and get information about the world. 
     Use the commands with the syntax: !commandName or !commandName("arg1", 1.2, ...) if the command takes arguments.\n
     Do not use codeblocks. Use double quotes for strings. Only use one command in each response, trailing commands and comments will be ignored.\n`;
-    for (let command of commandList) {
+    let allCommands = commandList.concat(roleCommands);
+    for (let command of allCommands) {
         if (blacklist && blacklist.includes(command.name)) {
             continue;
         }

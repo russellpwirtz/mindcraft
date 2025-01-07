@@ -24,6 +24,46 @@ function runAsAction (actionFn, resume = false, timeout = -1) {
     return wrappedAction;
 }
 
+export const roleActionsList = [
+    {
+        name: '!tillLocation',
+        description: 'Till a grass block to turn it into farmland. ',
+        params: { 
+            'x_coord': { type: 'int', description: 'The x coordinate to till.' },
+            'y_coord': { type: 'int', description: 'The y coordinate to till.' },
+            'z_coord': { type: 'int', description: 'The z coordinate to till.' },
+        },
+        perform: runAsAction(async (agent, x_coord, y_coord, z_coord, type) => {
+            await skills.till(agent.bot, x_coord, y_coord, z_coord);
+        })
+    },
+    {
+        name: '!sowLocation',
+        description: 'Sow the crop type in the specified location. ',
+        params: { 
+            'x_coord': { type: 'int', description: 'The x coordinate to seed.' },
+            'y_coord': { type: 'int', description: 'The y coordinate to seed.' },
+            'z_coord': { type: 'int', description: 'The z coordinate to seed.' },
+            'type': { type: 'ItemName', description: 'The seed type to sow, e.g. wheat_seeds.' },
+        },
+        perform: runAsAction(async (agent, x_coord, y_coord, z_coord, type) => {
+            await skills.sow(agent.bot, x_coord, y_coord, z_coord, type);
+        })
+    },
+    {
+        name: '!harvestLocation',
+        description: 'Harvest the specified location.',
+        params: { 
+            'x_coord': { type: 'int', description: 'The x coordinate to harvest.' },
+            'y_coord': { type: 'int', description: 'The y coordinate to harvest.' },
+            'z_coord': { type: 'int', description: 'The z coordinate to harvest.' },
+        },
+        perform: runAsAction(async (agent, x_coord, y_coord, z_coord) => {
+            await skills.harvest(agent.bot, x_coord, y_coord, z_coord);
+        })
+    },
+]
+
 export const actionsList = [
     {
         name: '!newAction',
@@ -179,7 +219,7 @@ export const actionsList = [
     {
         name: '!consume',
         description: 'Eat/drink the given item.',
-        params: {'item_name': { type: 'ItemName', description: 'The name of the item to consume.' }},
+        params: {'item_name': { type: 'ItemName', description: 'The name of the item to consume, i.e. \"bread\", \"apple\", etc.' }},
         perform: runAsAction(async (agent, item_name) => {
             await skills.consume(agent.bot, item_name);
         })
@@ -318,43 +358,6 @@ export const actionsList = [
         perform: runAsAction(async (agent) => {
             await skills.goToBed(agent.bot);
         })
-    },
-    {
-        name: '!tillLocation',
-        description: 'Till a grass block to turn it into farmland. ',
-        params: { 
-          'x_coord': { type: 'int', description: 'The x coordinate to till.' },
-          'y_coord': { type: 'int', description: 'The y coordinate to till.' },
-          'z_coord': { type: 'int', description: 'The z coordinate to till.' },
-        },
-        perform: runAsAction(async (agent, x_coord, y_coord, z_coord, type) => {
-            await skills.till(agent.bot, x_coord, y_coord, z_coord);
-        })
-      },
-    {
-      name: '!sowLocation',
-      description: 'Sow the crop type in the specified location. ',
-      params: { 
-        'x_coord': { type: 'int', description: 'The x coordinate to seed.' },
-        'y_coord': { type: 'int', description: 'The y coordinate to seed.' },
-        'z_coord': { type: 'int', description: 'The z coordinate to seed.' },
-        'type': { type: 'ItemName', description: 'The seed type to sow, e.g. wheat_seeds.' },
-      },
-      perform: runAsAction(async (agent, x_coord, y_coord, z_coord, type) => {
-          await skills.sow(agent.bot, x_coord, y_coord, z_coord, type);
-      })
-    },
-    {
-      name: '!harvestLocation',
-      description: 'Harvest the specified location.',
-      params: { 
-        'x_coord': { type: 'int', description: 'The x coordinate to harvest.' },
-        'y_coord': { type: 'int', description: 'The y coordinate to harvest.' },
-        'z_coord': { type: 'int', description: 'The z coordinate to harvest.' },
-      },
-      perform: runAsAction(async (agent, x_coord, y_coord, z_coord) => {
-          await skills.harvest(agent.bot, x_coord, y_coord, z_coord);
-      })
     },
     {
         name: '!activate',
