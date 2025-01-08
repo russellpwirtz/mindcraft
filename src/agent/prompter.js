@@ -5,6 +5,7 @@ import { getSkillDocs } from './library/index.js';
 import { stringifyTurns } from '../utils/text.js';
 import { getCommand } from './commands/index.js';
 import { getRoleCommand } from './commands/index.js';
+import { getRoleConfig } from './library/roles.js'
 
 import { Gemini } from '../models/gemini.js';
 import { GPT } from '../models/gpt.js';
@@ -25,14 +26,6 @@ export class Prompter {
         this.agent = agent;
         this.profile = JSON.parse(readFileSync(fp, 'utf8'));
         this.default_profile = JSON.parse(readFileSync('./profiles/_default.json', 'utf8'));
-        const rolesDir = './profiles/roles';
-        const roleFiles = readdirSync(rolesDir).filter(file => file.endsWith('.json'));
-        this.rolesMap = roleFiles.reduce((acc, file) => {
-            const roleName = file.replace('.json', '');
-            const roleData = JSON.parse(readFileSync(`${rolesDir}/${file}`, 'utf8'));
-            acc[roleName] = roleData;
-            return acc;
-        }, {});
 
         for (let key in this.default_profile) {
             if (this.profile[key] === undefined)
@@ -207,10 +200,14 @@ export class Prompter {
         }
         let roleCommandList = [];
         if (prompt.includes('$COMMAND_DOCS')) {
+            let blocked_actions = this.agent.blocked_actions;
             if (this.profile.roles){
-                roleCommandList = await this.getRoleCommandList(this.profile.roles);
+                roleCommandList = await this.getCommandListForRoles(this.profile.roles);
+                // if (this.profile.roles.blocked_commands) {
+                //   blocked_actions = this.profile.roles.blocked_commands;
+                // }
             }
-            prompt = prompt.replaceAll('$COMMAND_DOCS', getCommandDocs(this.agent.blocked_actions, roleCommandList));
+            prompt = prompt.replaceAll('$COMMAND_DOCS', getCommandDocs(blocked_actions, roleCommandList));
         }
         if (prompt.includes('$CODE_DOCS'))
             prompt = prompt.replaceAll('$CODE_DOCS', getSkillDocs());
@@ -254,11 +251,13 @@ export class Prompter {
         return prompt;
     }
 
-    async getRoleCommandList(roles=[]) {
+    async getCommandListForRoles(roles=[]) {
         let result = [];
-        let role = roles[0]; // TODO: multiple roles
-        let roleJson = this.rolesMap[role];
-        let roleSkills = roleJson.skills;
+        let roleConfig = getRoleConfig(roles[0]);
+        if (!roleConfig) {
+          return '';
+        }
+        let roleSkills = roleConfig.skills;
         for (let roleSkill of roleSkills) {
             let command = await getRoleCommand(roleSkill);
             if (command) {
@@ -287,24 +286,26 @@ export class Prompter {
             let prompt = this.profile.conversing;
             prompt = await this.replaceStrings(prompt, messages, this.convo_examples);
             if (this.profile.roles) {
-              let rolePrompt = '';
-              let firstRole = this.profile.roles[0];
-              let roleJson = this.rolesMap[firstRole];
+                let rolePrompt = '';
+                let firstRole = this.profile.roles[0];
 
-              rolePrompt += "JOB NAME:\n" + firstRole + "\n";
+                let roleConfig = getRoleConfig(firstRole);
+                if (roleConfig) {
+                    rolePrompt += "JOB NAME:\n" + firstRole + "\n";
 
-              let jobSite = roleJson["job_site"];
-              let jobSiteDescription = roleJson["job_site_description"].replaceAll("$JOB_SITE", jobSite);
-              rolePrompt += "JOB SITE DESCRIPTION:\n" + jobSiteDescription + "\n";
+                    let jobSite = roleConfig["job_site"];
+                    let jobSiteDescription = roleConfig["job_site_description"].replaceAll("$JOB_SITE", jobSite);
+                    rolePrompt += "JOB SITE DESCRIPTION:\n" + jobSiteDescription + "\n";
 
-              let jobTools = roleJson["job_tools"].join(", ");
-              let jobSupplies = JSON.stringify(roleJson["job_supplies"]);
-              let jobPrepDescription = roleJson["job_prep_description"].replaceAll("$JOB_TOOLS", jobTools).replaceAll("$JOB_SUPPLIES", jobSupplies);
-              rolePrompt += "JOB PREP DESCRIPTION:\n" + jobPrepDescription + "\n";
-              
-              let jobDescription = roleJson["job_description"];
-              rolePrompt += "JOB DESCRIPTION:\n" + jobDescription + "\n";
-              prompt = rolePrompt + prompt;
+                    let jobTools = roleConfig["job_tools"].join(", ");
+                    let jobSupplies = JSON.stringify(roleConfig["job_supplies"]);
+                    let jobPrepDescription = roleConfig["job_prep_description"].replaceAll("$JOB_TOOLS", jobTools).replaceAll("$JOB_SUPPLIES", jobSupplies);
+                    rolePrompt += "JOB PREP DESCRIPTION:\n" + jobPrepDescription + "\n";
+
+                    let jobDescription = roleConfig["job_description"];
+                    rolePrompt += "JOB DESCRIPTION:\n" + jobDescription + "\n";
+                    prompt = rolePrompt + prompt;
+                }
             }
 
             let generation = await this.chat_model.sendRequest(messages, prompt);
@@ -342,8 +343,9 @@ export class Prompter {
         let prompt = '';
         if (this.profile.roles) {
           let firstRole = this.profile.roles[0];
-          let roleJson = this.rolesMap[firstRole];
-          prompt = roleJson["saving_memory"].replaceAll("$JOB_NAME", firstRole);
+          let roleConfig = getRoleConfig(firstRole);
+          let savingMemoryInstructions = roleConfig["saving_memory"];
+          prompt = savingMemoryInstructions.replaceAll("$JOB_NAME", firstRole);
         } else {
           prompt = this.profile.saving_memory;
         }

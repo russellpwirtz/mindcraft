@@ -52,10 +52,11 @@ export class Tabby {
                 return accumulator + currentValue;
               }, 0);
             var avgContextLength = (contextLengthSum / this.contextLengthHistory.length).toFixed(0);
-            console.log(`<-- Tabby response: "${completion.choices[0].message.content}"`);
 
+            const responseColor = '\u001b[32;1m';
             const green = '\x1b[32m';
             const reset = '\x1b[0m';
+            console.log(`<-- Tabby response: "${responseColor}${completion.choices[0].message.content}${reset}"`);
             console.log(`${green}||| Tabby stats ||| Response time: ${durationSeconds}s | Avg Response Time: ${avgResponseTime}s | Top Response Time: ${this.topResponseTime}s ||| Prompt Tokens: ${completion.usage.total_tokens} | Completion Tokens: ${completion.usage.completion_tokens} | Total Context: ${completion.usage.total_tokens} | Avg Context: ${avgContextLength} | Top Context: ${this.topContextLength} |||${reset}`);
 
             res = completion.choices[0].message.content;

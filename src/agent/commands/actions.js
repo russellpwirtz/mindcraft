@@ -9,7 +9,16 @@ function runAsAction (actionFn, resume = false, timeout = -1) {
         // Set actionLabel only once, when the action is first created
         if (!actionLabel) {
             const actionObj = actionsList.find(a => a.perform === wrappedAction);
-            actionLabel = actionObj.name.substring(1); // Remove the ! prefix
+            if (actionObj) {
+              actionLabel = actionObj.name.substring(1); // Remove the ! prefix
+            }
+        }
+
+        if (!actionLabel) {
+            const actionObj = roleActionsList.find(a => a.perform === wrappedAction);
+            if (actionObj) {
+              actionLabel = actionObj.name.substring(1); // Remove the ! prefix
+            }
         }
 
         const actionFnWithAgent = async () => {

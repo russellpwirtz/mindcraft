@@ -12,7 +12,7 @@ for (let command of commandList) {
 }
 
 export function getCommand(name) {
-    return commandMap[name];
+    return commandMap[name] || roleCommandMap[name];
 }
 
 const roleCommandList = roleQueryList.concat(roleActionsList);
@@ -38,7 +38,7 @@ export function containsCommand(message) {
 export function commandExists(commandName) {
     if (!commandName.startsWith("!"))
         commandName = "!" + commandName;
-    return commandMap[commandName] !== undefined;
+    return commandMap[commandName] !== undefined || roleCommandMap[commandName] !== undefined;
 }
 
 /**
@@ -104,7 +104,10 @@ export function parseCommandMessage(message) {
     else args = [];
 
     const command = getCommand(commandName);
-    if(!command) return `${commandName} is not a command.`
+    if (!command) {
+      console.log(`Unable to parse command: \u001b[31m${commandName} is not a command.\x1b[0m`)
+      return `${commandName} is not a command.`;
+    }
 
     const params = commandParams(command);
     const paramNames = commandParamNames(command);

@@ -277,7 +277,7 @@ export class Agent {
                 
                 if (!commandExists(command_name)) {
                     this.history.add('system', `Command ${command_name} does not exist.`);
-                    console.warn('Agent hallucinated command:', command_name)
+                    console.warn(`\x1b[31mAgent hallucinated command:${command_name}\x1b[0m`)
                     continue;
                 }
 

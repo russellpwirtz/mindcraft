@@ -60,9 +60,10 @@ export class Ooba {
               }, 0);
             var avgContextLength = (contextLengthSum / this.contextLengthHistory.length).toFixed(0);
 
-            console.log(`<== Ooba response: "${message}"`);
+            const lightGray = '\x1b[90m';
             const cyan = '\x1b[36m';
             const reset = '\x1b[0m';
+            console.log(`<== Ooba response: "${lightGray}${message}${reset}"`);
             console.log(`${cyan}||| Ooba stats ||| Response time: ${durationSeconds}s | Avg Response Time: ${avgResponseTime}s | Top Response Time: ${this.topResponseTime}s ||| Prompt Tokens: ${completion.usage.total_tokens} | Completion Tokens: ${completion.usage.completion_tokens} | Total Context: ${completion.usage.total_tokens} | Avg Context: ${avgContextLength} | Top Context: ${this.topContextLength} |||${reset}`);
             res = message;
         }
