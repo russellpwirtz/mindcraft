@@ -262,8 +262,8 @@ export class Agent {
             let history = this.history.getHistory();
             let res = await this.prompter.promptConvo(history);
 
-            console.log(`${this.name} full response to ${source}: ""${res}""`);
-            
+            console.log(`\x1b[44m${this.name}\x1b[0m full response to \x1b[44m${source}\x1b[0m: ""\x1b[32m${res}\x1b[0m""`);
+          
             if (res.trim().length === 0) { 
                 console.warn('no response')
                 break; // empty response ends loop

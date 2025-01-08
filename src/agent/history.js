@@ -38,8 +38,7 @@ export class History {
           this.memory = this.memory.slice(0, 1500);
           this.memory += '...(Memory truncated to 1500 chars. Compress it more next time)';
         }
-
-        console.log("Memory updated to: ", this.memory);
+        console.log(`Updated \x1b[44m${this.agent.bot.username}\x1b[0m memory to:\n${this.memory}\x1b[0m\n`);
     }
 
     appendFullHistory(to_store) {
