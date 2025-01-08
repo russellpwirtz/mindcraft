@@ -201,11 +201,9 @@ export class Prompter {
         let roleCommandList = [];
         if (prompt.includes('$COMMAND_DOCS')) {
             let blocked_actions = this.agent.blocked_actions;
-            if (this.profile.roles){
+            if (this.profile.roles) {
                 roleCommandList = await this.getCommandListForRoles(this.profile.roles);
-                // if (this.profile.roles.blocked_commands) {
-                //   blocked_actions = this.profile.roles.blocked_commands;
-                // }
+                blocked_actions = this.getBlockedByRole(getRoleConfig(this.profile.roles[0]), blocked_actions);
             }
             prompt = prompt.replaceAll('$COMMAND_DOCS', getCommandDocs(blocked_actions, roleCommandList));
         }
@@ -249,6 +247,16 @@ export class Prompter {
             console.warn('Unknown prompt placeholders:', remaining.join(', '));
         }
         return prompt;
+    }
+
+    getBlockedByRole(roleConfig, blocked_actions) {
+        if (roleConfig.blocked_skills) {
+            if (!blocked_actions) {
+                return roleConfig.blocked_skills;
+            } else {
+                return blocked_actions.concat(roleConfig.blocked_skills);
+            }
+        }
     }
 
     async getCommandListForRoles(roles=[]) {

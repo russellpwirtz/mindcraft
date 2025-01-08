@@ -1,6 +1,7 @@
 {
   "job_site": "composter",
   "skills": ["!sowLocation", "!tillLocation", "!harvestLocation", "!scanFarm"],
+  "blocked_skills": ["!searchForBlock", "!goToPlayer", "!consume"],
   "job_tools": ["wooden_hoe", "stone_hoe", "iron_hoe"],
   "job_supplies": {
     "wheat_seeds": 32,

@@ -174,7 +174,7 @@ export const roleQueryList = [
         perform: function (agent) {
             let bot = agent.bot;
             let res = 'SCAN_FARM';
-            let block_types = ["composter", "dirt_path", "farmland", "wheat", "wheat_seeds", "beetroot_seeds", "melon_seeds", "grass_block", "melon", "melon_seeds", "beetroots", "potatoes", "carrots", "pumpkin_seeds", "pumpkin"]
+            let block_types = ["composter", "chest", "crafting_table", "dirt_path", "farmland", "wheat", "wheat_seeds", "beetroot_seeds", "melon_seeds", "grass_block", "melon", "melon_seeds", "beetroots", "potatoes", "carrots", "pumpkin_seeds", "pumpkin"]
             let blocks = world.getNearbyBlockDetails(bot, block_types, 16, 16);
             for (let i = 0; i < blocks.length; i++) {
                 res += `\n- ${blocks[i]}`;
