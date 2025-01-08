@@ -60,9 +60,6 @@ export const queryList = [
                 res += "\nSAVED PLACES\n- ";
                 res += agent.memory_bank.getKeys().replaceAll(', ', '\n- ');
             }
-            if (world.getNearestBlock(agent.bot, 'crafting_table')) {
-                res += getCraftableString(agent);
-            }
             return pad(res);
         }
     },
