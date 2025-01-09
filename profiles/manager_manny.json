@@ -6,7 +6,7 @@
     "cowardice": false,
     "self_defense": true,
     "hunting": true,
-    "item_collecting": true,
+    "item_collecting": false,
     "torch_placing": true,
     "elbow_room": true,
     "idle_staring": false,

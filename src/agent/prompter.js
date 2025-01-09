@@ -305,9 +305,8 @@ export class Prompter {
                     let jobSiteDescription = roleConfig["job_site_description"].replaceAll("$JOB_SITE", jobSite);
                     rolePrompt += "JOB SITE DESCRIPTION:\n" + jobSiteDescription + "\n";
 
-                    let jobTools = roleConfig["job_tools"].join(", ");
                     let jobSupplies = JSON.stringify(roleConfig["job_supplies"]);
-                    let jobPrepDescription = roleConfig["job_prep_description"].replaceAll("$JOB_TOOLS", jobTools).replaceAll("$JOB_SUPPLIES", jobSupplies);
+                    let jobPrepDescription = roleConfig["job_prep_description"].replaceAll("$JOB_SUPPLIES", jobSupplies);
                     rolePrompt += "JOB PREP DESCRIPTION:\n" + jobPrepDescription + "\n";
 
                     let jobDescription = roleConfig["job_description"].replaceAll("$JOB_NAME", firstRole);
