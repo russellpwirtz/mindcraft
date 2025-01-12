@@ -1,5 +1,11 @@
-# Mindcraft 🧠⛏️
+# Mindcraft Local 🧠⛏️
 
+This is a *fork* of the amazing [mindcraft](https://github.com/kolbytn/mindcraft), but with a focus on local LLMs, bot occupations / roles, and exploring emergent behaviors. 
+### Updates in this fork:
+- Configuration for multiple parallel "brains": one for logic / tool calling (higher caliber), one for summarization (higher speed)
+- Role system: distinct roles for bots. Customizable attributes for each bots, such as unique tools per bot (i.e. only farmer can call !scanFarm)
+- Configurations for popular local LLMs: Ollama, TabbyAPI, Text Generation WebUI
+  
 Crafting minds for Minecraft with LLMs and Mineflayer!
 
 [FAQ](https://github.com/kolbytn/mindcraft/blob/main/FAQ.md) | [Discord Support](https://discord.gg/mp73p35dzC) | [Blog Post](https://kolbynottingham.com/mindcraft/) | [Contributor TODO](https://github.com/users/kolbytn/projects/1)
