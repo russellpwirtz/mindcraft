@@ -971,13 +971,27 @@ export async function goToNearestBlock(bot, blockType,  min_distance=2, range=64
     }
     let block = world.getNearestBlock(bot, blockType, range);
     if (!block) {
-        log(bot, `Could not find any ${blockType} in ${range} blocks.`);
-        return false;
+        console.log(`Couldn't find ${blockType}, checking nearby chests.`);
+        let chest = world.getNearestBlock(bot, 'chest', 32);
+        if (!chest) {
+            console.log(`STILL couldn't find ${blockType}, no chests found.`);
+            log(bot, `Could not find any ${blockType} in ${range} blocks, or any nearby chests.`);
+            return false;
+        }
+        await goToPosition(bot, chest.position.x, chest.position.y, chest.position.z, 2);
+        const chestContainer = await bot.openContainer(chest);
+        let item = chestContainer.containerItems().find(item => item.name === blockType);
+        if (item) {
+            log(bot, `Found ${blockType}. It's located in a nearby chest at ${chest.position}.`);
+            return true;
+        } else {
+            log(bot, `Could not find any ${blockType} in ${range} blocks, or in nearby chest.`);
+            return false;
+        }
     }
     log(bot, `Found ${blockType} at ${block.position}.`);
     await goToPosition(bot, block.position.x, block.position.y, block.position.z, min_distance);
     return true;
-    
 }
 
 export async function goToNearestEntity(bot, entityType, min_distance=2, range=64) {
@@ -991,8 +1005,24 @@ export async function goToNearestEntity(bot, entityType, min_distance=2, range=6
      **/
     let entity = world.getNearestEntityWhere(bot, entity => entity.name === entityType, range);
     if (!entity) {
-        log(bot, `Could not find any ${entityType} in ${range} blocks.`);
-        return false;
+        console.log(`Couldn't find ${entityType}, checking nearby chests.`);
+        let chest = world.getNearestBlock(bot, 'chest', 32);
+        if (!chest) {
+            console.log(`STILL couldn't find ${entityType}, no chests found.`);
+            log(bot, `Could not find any ${entityType} in ${range} blocks, or any nearby chests. Perhaps try !searchForBlock instead.`);
+            return false;
+        }
+        await goToPosition(bot, chest.position.x, chest.position.y, chest.position.z, 2);
+        const chestContainer = await bot.openContainer(chest);
+        let item = chestContainer.containerItems().find(item => item.name === entityType);
+        if (item) {
+            console.log(`FOUND ${entityType} in nearby chests!`);
+            log(bot, `Found ${entityType}. It's located in a nearby chest at ${chest.position}.`);
+            return true;
+        } else {
+            log(bot, `Could not find any ${entityType} in ${range} blocks, or in nearby chests. Perhaps try !searchForBlock instead.`);
+            return false;
+        }
     }
     let distance = bot.entity.position.distanceTo(entity.position);
     log(bot, `Found ${entityType} ${distance} blocks away.`);
@@ -1271,13 +1301,15 @@ export async function till(bot, x, y, z) {
     if (!block || (block.name !== 'dirt' && block.name !== "grass_block")) {
         if (block?.name === "farmland") {
             log(bot, `Cannot till ${block?.name}, it's already farmland! (Try using !sowLocation here).`);
+        } else if (block?.name === "short_grass") {
+            log(bot, `Cannot till ${block?.name}. (Try using !harvestLocation here).`);
         } else {
             log(bot, `Cannot till ${block?.name}, must be dirt or grass block.`);
         }
         return false;
     }
-    if (bot.entity.position.distanceTo(block.position) > 2.5) {
-        let pos = block.position;
+    let pos = block.position;
+    if (bot.entity.position.distanceTo(pos) > 2.5) {
         bot.pathfinder.setMovements(new pf.Movements(bot));
         await bot.pathfinder.goto(new pf.goals.GoalNear(pos.x, pos.y, pos.z, 2));
     }
@@ -1423,6 +1455,12 @@ export async function harvest(bot, x, y, z) {
   await bot.waitForTicks(4);
   log(bot, `Harvested block: ${block.name}.`);
 
+  let pickedUp = await pickupNearbyItems(bot);
+  if (pickedUp) {
+      console.log("Picked up harvest!");
+  } else {
+      console.log("Did not pick up harvest...");
+  }
   return true;
 }
 

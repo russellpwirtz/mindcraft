@@ -34,6 +34,7 @@ function runAsAction (actionFn, resume = false, timeout = -1) {
 }
 
 export const roleActionsList = [
+    // farmer
     {
         name: '!tillLocation',
         description: 'Till a grass block to turn it into farmland. ',
@@ -71,6 +72,31 @@ export const roleActionsList = [
             await skills.harvest(agent.bot, x_coord, y_coord, z_coord);
         })
     },
+    // blacksmith
+    {
+        name: '!smeltItem',
+        description: 'Smelt the given item the given number of times.',
+        params: {
+            'item_name': { type: 'ItemName', description: 'The name of the input item to smelt.' },
+            'num': { type: 'int', description: 'The number of times to smelt the item.', domain: [1, Number.MAX_SAFE_INTEGER] }
+        },
+        perform: runAsAction(async (agent, item_name, num) => {
+            let success = await skills.smeltItem(agent.bot, item_name, num);
+            if (success) {
+                setTimeout(() => {
+                    agent.cleanKill('Safely restarting to update inventory.');
+                }, 500);
+            }
+        })
+      },
+      {
+          name: '!clearFurnace',
+          description: 'Take all items out of the nearest furnace.',
+          params: { },
+          perform: runAsAction(async (agent) => {
+              await skills.clearNearestFurnace(agent.bot);
+          })
+      },
 ]
 
 export const actionsList = [
@@ -308,30 +334,6 @@ export const actionsList = [
         })
     },
     {
-        name: '!smeltItem',
-        description: 'Smelt the given item the given number of times.',
-        params: {
-            'item_name': { type: 'ItemName', description: 'The name of the input item to smelt.' },
-            'num': { type: 'int', description: 'The number of times to smelt the item.', domain: [1, Number.MAX_SAFE_INTEGER] }
-        },
-        perform: runAsAction(async (agent, item_name, num) => {
-            let success = await skills.smeltItem(agent.bot, item_name, num);
-            if (success) {
-                setTimeout(() => {
-                    agent.cleanKill('Safely restarting to update inventory.');
-                }, 500);
-            }
-        })
-    },
-    {
-        name: '!clearFurnace',
-        description: 'Take all items out of the nearest furnace.',
-        params: { },
-        perform: runAsAction(async (agent) => {
-            await skills.clearNearestFurnace(agent.bot);
-        })
-    },
-        {
         name: '!placeHere',
         description: 'Place a given block in the current location. Do NOT use to build structures, only use for single blocks/torches.',
         params: {'type': { type: 'BlockName', description: 'The block type to place.' }},
