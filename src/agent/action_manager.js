@@ -24,6 +24,7 @@ export class ActionManager {
     async stop() {
         if (!this.executing) return;
         const timeout = setTimeout(() => {
+            console.log(`Killing agent`);
             this.agent.cleanKill('Code execution refused stop after 10 seconds. Killing process.');
         }, 10000);
         while (this.executing) {
@@ -131,7 +132,7 @@ export class ActionManager {
         const { bot } = this.agent;
         if (bot.interrupt_code && !this.timedout) return '';
         let output = bot.output;
-        const MAX_OUT = 500;
+        const MAX_OUT = 1500;
         if (output.length > MAX_OUT) {
             output = `Code output is very long (${output.length} chars) and has been shortened.\n
           First outputs:\n${output.substring(0, MAX_OUT / 2)}\n...skipping many lines.\nFinal outputs:\n ${output.substring(output.length - MAX_OUT / 2)}`;

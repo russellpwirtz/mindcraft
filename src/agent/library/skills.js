@@ -1,4 +1,5 @@
 import * as mc from "../../utils/mcdata.js";
+import { getInventoryString, getScanAreaString } from "../npc/utils.js";
 import * as world from "./world.js";
 import pf from 'mineflayer-pathfinder';
 import Vec3 from 'vec3';
@@ -275,6 +276,32 @@ export async function clearNearestFurnace(bot) {
     log(bot, `Cleared furnace, received ${smelted_name}, ${input_name}, and ${fuel_name}.`);
     return true;
 
+}
+
+export async function scanForge(bot) {
+    let distance = 50;
+    let max_per_type = 5;
+    let block_types = ["chest", "crafting_table", "dirt_path", "furnace", "raw_iron", "coal"];
+    let scanResults = getScanAreaString(bot, 'SCAN_FORGE', block_types, distance, max_per_type);
+    if (scanResults.includes("chest")) {
+        let chest = world.getNearestBlock(bot, 'chest', distance);
+        if (!chest) {
+            console.log("Couldn't find a chest in scanForge");
+        } else {
+            await goToPosition(bot, chest.position.x, chest.position.y, chest.position.z, 4);
+            const chestContainer = await bot.openContainer(chest);
+            let itemNames = chestContainer.containerItems().filter(item => block_types.includes(item.name)).map(item => item.name);
+            await chestContainer.close();
+            if (itemNames) {
+                scanResults += `Chest contains: ${itemNames.join(", ")}`;
+            }
+        }
+    }
+    if (scanResults.includes("furnace")) {
+        // TODO
+    }
+    log(bot, scanResults);
+    return true;
 }
 
 
@@ -785,7 +812,8 @@ export async function putInChest(bot, itemName, num=-1) {
     const chestContainer = await bot.openContainer(chest);
     await chestContainer.deposit(item.type, null, to_put);
     await chestContainer.close();
-    log(bot, `Successfully put ${to_put} ${itemName} in the chest.`);
+    log(bot, `Successfully put ${to_put} ${itemName} in the chest.${getInventoryString(bot)}`);
+    await viewChest(bot);
     return true;
 }
 
@@ -813,9 +841,23 @@ export async function takeFromChest(bot, itemName, num=-1) {
         return false;
     }
     let to_take = num === -1 ? item.count : Math.min(num, item.count);
-    await chestContainer.withdraw(item.type, null, to_take);
+
+    try {
+        await chestContainer.withdraw(item.type, null, to_take);
+    } catch(error) {
+        if (error.message?.includes("inventory is full")) {
+            let inventory = getInventoryString(bot);
+            console.log(`Unable to withdraw, inventory is full.\n${inventory}`);
+            log(bot, `Unable to take ${to_take} ${itemName} from the chest, inventory is full (try the !discard command before proceeding).${inventory}`);
+        } else {
+            console.log(`Unable to withdraw: ${error}`);
+            log(bot, `Unable to take ${to_take} ${itemName} from the chest!`);
+        }
+        return false;
+    }
     await chestContainer.close();
-    log(bot, `Successfully took ${to_take} ${itemName} from the chest.`);
+    log(bot, `Successfully took ${to_take} ${itemName} from the chest.${getInventoryString(bot)}`);
+    await viewChest(bot);
     return true;
 }
 
@@ -966,28 +1008,13 @@ export async function goToNearestBlock(bot, blockType,  min_distance=2, range=64
      * **/
     const MAX_RANGE = 512;
     if (range > MAX_RANGE) {
-        log(bot, `Maximum search range capped at ${MAX_RANGE}. `);
+        log(bot, `Maximum search range capped at ${MAX_RANGE}.`);
         range = MAX_RANGE;
     }
     let block = world.getNearestBlock(bot, blockType, range);
     if (!block) {
-        console.log(`Couldn't find ${blockType}, checking nearby chests.`);
-        let chest = world.getNearestBlock(bot, 'chest', 32);
-        if (!chest) {
-            console.log(`STILL couldn't find ${blockType}, no chests found.`);
-            log(bot, `Could not find any ${blockType} in ${range} blocks, or any nearby chests.`);
-            return false;
-        }
-        await goToPosition(bot, chest.position.x, chest.position.y, chest.position.z, 2);
-        const chestContainer = await bot.openContainer(chest);
-        let item = chestContainer.containerItems().find(item => item.name === blockType);
-        if (item) {
-            log(bot, `Found ${blockType}. It's located in a nearby chest at ${chest.position}.`);
-            return true;
-        } else {
-            log(bot, `Could not find any ${blockType} in ${range} blocks, or in nearby chest.`);
-            return false;
-        }
+        log(bot, `Could not find any ${blockType} in ${range} blocks.`);
+        return false;
     }
     log(bot, `Found ${blockType} at ${block.position}.`);
     await goToPosition(bot, block.position.x, block.position.y, block.position.z, min_distance);
@@ -996,33 +1023,32 @@ export async function goToNearestBlock(bot, blockType,  min_distance=2, range=64
 
 export async function goToNearestEntity(bot, entityType, min_distance=2, range=64) {
     /**
-     * Navigate to the nearest entity of the given type.
+     * Navigate to the nearest entity (item) of the given type.
      * @param {MinecraftBot} bot, reference to the minecraft bot.
      * @param {string} entityType, the type of entity to navigate to.
      * @param {number} min_distance, the distance to keep from the entity. Defaults to 2.
      * @param {number} range, the range to look for the entity. Defaults to 64.
      * @returns {Promise<boolean>} true if the entity was reached, false otherwise.
      **/
-    let entity = world.getNearestEntityWhere(bot, entity => entity.name === entityType, range);
-    if (!entity) {
-        console.log(`Couldn't find ${entityType}, checking nearby chests.`);
-        let chest = world.getNearestBlock(bot, 'chest', 32);
-        if (!chest) {
-            console.log(`STILL couldn't find ${entityType}, no chests found.`);
-            log(bot, `Could not find any ${entityType} in ${range} blocks, or any nearby chests. Perhaps try !searchForBlock instead.`);
-            return false;
-        }
+    let chest = world.getNearestBlock(bot, 'chest', range);
+    if (!chest) {
+        console.log(`Couldn't find chests in search of ${entityType}.`);
+    } else {
         await goToPosition(bot, chest.position.x, chest.position.y, chest.position.z, 2);
         const chestContainer = await bot.openContainer(chest);
         let item = chestContainer.containerItems().find(item => item.name === entityType);
+        await chestContainer.close();
         if (item) {
-            console.log(`FOUND ${entityType} in nearby chests!`);
             log(bot, `Found ${entityType}. It's located in a nearby chest at ${chest.position}.`);
             return true;
         } else {
-            log(bot, `Could not find any ${entityType} in ${range} blocks, or in nearby chests. Perhaps try !searchForBlock instead.`);
-            return false;
+            console.log(`Could not find any ${entityType} in ${range} in nearby chests.`);
         }
+    }
+    let entity = world.getNearestEntityWhere(bot, entity => entity.name === entityType, range);
+    if (!entity) {
+        log(bot, `Couldn't find ${entityType} nearby or in nearby chests.`);
+        return false;
     }
     let distance = bot.entity.position.distanceTo(entity.position);
     log(bot, `Found ${entityType} ${distance} blocks away.`);
@@ -1422,7 +1448,7 @@ export async function harvest(bot, x, y, z) {
     return false;
   }
 
-  if (block.name === "melon" || block.name === "pumpkin") {
+  if (block.name === "melon" || block.name === "pumpkin" || block.name === "short_grass") {
     // can be harvested without waiting
   } else if (block.name === "beetroots") {
     if (block.metadata < 3) {

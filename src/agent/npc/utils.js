@@ -151,8 +151,7 @@ export function getAdjacentBlocksString(bot) {
 }
 
 
-export function getInventoryString(agent) {
-  let bot = agent.bot;
+export function getInventoryString(bot) {
   let inventory = world.getInventoryCounts(bot);
   let res = 'INVENTORY';
   for (const item in inventory) {
@@ -161,8 +160,7 @@ export function getInventoryString(agent) {
   }
   if (res === 'INVENTORY') {
       res += ': Nothing';
-  }
-  else if (agent.bot.game.gameMode === 'creative') {
+  } else if (bot.game.gameMode === 'creative') {
       res += '\n(You have infinite items in creative mode. You do not need to gather resources!!)';
   }
 
@@ -183,6 +181,20 @@ export function getInventoryString(agent) {
       res += 'Nothing';
 
   return pad(res);
+}
+
+
+export function getScanAreaString(bot, res, block_types, distance, max_per_type) {
+    let blocks = world.getNearbyBlockDetails(bot, block_types, distance, max_per_type);
+    for (let i = 0; i < blocks.length; i++) {
+        res += `\n- ${blocks[i]}`;
+    }
+    if (blocks.length == 0) {
+        res += ': none';
+    }
+    res += `\nYour location: [${Math.round(bot.entity.position.x)},${Math.round(bot.entity.position.y)},${Math.round(bot.entity.position.z)}]`;
+    res += getAdjacentBlocksString(bot);
+    return pad(res);
 }
 
 

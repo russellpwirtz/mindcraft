@@ -11,8 +11,13 @@ export default
     "mindserver_port": 8080,
     
     "profiles": [
-        "./andy.json",
-        // "./profiles/farmerjoe.json",
+        "./profiles/farmer_fred.json",
+        // "./profiles/manager_manny.json",
+        "./profiles/blacksmith_bob.json",
+        // "./profiles/miner_mike.json",
+        // "./profiles/lumberjack_larry.json",
+        // "./profiles/construct_carl.json",
+        // "./profiles/smokey_samantha.json",
         // "./profiles/gpt.json",
         // "./profiles/claude.json",
         // "./profiles/gemini.json",
@@ -23,7 +28,7 @@ export default
         // using more than 1 profile requires you to /msg each bot indivually
     ],
     "load_memory": false, // load memory from previous session
-    "init_message": "Respond with hello world and your name", // sends to all on spawn
+    "init_message": "Briefly introduce yourself, then begin your occupation by calling !goal(\"Start working\").", // sends to all on spawn
     "only_chat_with": [], // users that the bots listen to and send general messages to. if empty it will chat publicly
     
     "language": "en", // translate to/from this language. Supports these language names: https://cloud.google.com/translate/docs/languages

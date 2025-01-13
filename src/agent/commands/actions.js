@@ -77,26 +77,33 @@ export const roleActionsList = [
         name: '!smeltItem',
         description: 'Smelt the given item the given number of times.',
         params: {
-            'item_name': { type: 'ItemName', description: 'The name of the input item to smelt.' },
+            'item_name': { type: 'ItemName', description: 'The name of the input item to smelt, i.e. \"raw_iron\"' },
             'num': { type: 'int', description: 'The number of times to smelt the item.', domain: [1, Number.MAX_SAFE_INTEGER] }
         },
         perform: runAsAction(async (agent, item_name, num) => {
             let success = await skills.smeltItem(agent.bot, item_name, num);
-            if (success) {
-                setTimeout(() => {
-                    agent.cleanKill('Safely restarting to update inventory.');
-                }, 500);
-            }
+            // if (success) {
+            //     setTimeout(() => {
+            //         agent.cleanKill('Safely restarting to update inventory.');
+            //     }, 500);
+            // }
         })
-      },
-      {
-          name: '!clearFurnace',
-          description: 'Take all items out of the nearest furnace.',
-          params: { },
-          perform: runAsAction(async (agent) => {
-              await skills.clearNearestFurnace(agent.bot);
-          })
-      },
+    },
+    {
+        name: '!clearFurnace',
+        description: 'Take all items out of the nearest furnace.',
+        params: { },
+        perform: runAsAction(async (agent) => {
+            await skills.clearNearestFurnace(agent.bot);
+        })
+    },
+    {
+        name: "!scanForge",
+        description: "Get details about the nearby blacksmithing blocks.",
+        perform: runAsAction(async (agent) => {
+            await skills.scanForge(agent.bot);
+        })
+    },
 ]
 
 export const actionsList = [

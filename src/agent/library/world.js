@@ -321,6 +321,26 @@ export function getCraftableItems(bot) {
 }
 
 
+export function getSmeltableItems(bot) {
+  /**
+   * Get a list of all items that can be smelted with the bot's current inventory.
+   * @param {Bot} bot - The bot to get the craftable items for.
+   * @returns {string[]} - A list of all items that can be smelted.
+   * @example
+   * let smeltableItems = world.getSmeltableItems(bot);
+   **/
+  let smeltable_items = ['iron_ore', 'sand']; // TODO
+  let res = [];
+  for (let smeltable of smeltable_items) {
+    if (bot.inventory.items().find(item => item.name === smeltable)) {
+      res.push(smeltable);
+    }
+  }
+
+  return res;
+}
+
+
 export function getPosition(bot) {
     /**
      * Get your position in the world (Note that y is vertical).
@@ -460,9 +480,16 @@ let crops = ["wheat", "beetroots", "potatoes", "carrots", "melon", "pumpkin"]
 function getBlockMetadataString(bot, block) {
     if (!block) {
         return "";
+    } else if (block.name === "dirt" || block.name === "grass_block") {
+        let above = bot.blockAt(block.position.offset(0,1,0));
+        if (!above || above.name === 'air') {
+            return(`Is tillable.`);
+        } else {
+            return(`Is NOT tillable (has ${above.name} above it).`);
+        }
     } else if (block.name === "farmland") {
         let above = bot.blockAt(block.position.offset(0,1,0));
-        return(`Is ${block.metadata > 4 ? "" : "NOT "}watered. ${getCropDetails(above)}`)
+        return(`Is ${block.metadata > 4 ? "" : "NOT "}watered. ${getFarmlandDetails(above)}`)
     } else if (crops.includes(block.name)) {
         return(`Is ${isHarvestableCrop(block) ? "" : "NOT "}ready for harvest.`)
     } else if (block.name.includes("_sign")) {
@@ -473,7 +500,7 @@ function getBlockMetadataString(bot, block) {
     return "";
 }
 
-function getCropDetails(block) {
+function getFarmlandDetails(block) {
     if (crops.includes(block?.name)) {
         return `Has ${isHarvestableCrop(block) ? "harvestable" : "seedling"} ${block.name}.`;
     } else {

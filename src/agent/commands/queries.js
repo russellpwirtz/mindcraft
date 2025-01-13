@@ -1,6 +1,6 @@
 import * as world from '../library/world.js';
 import convoManager from '../conversation.js';
-import { getAdjacentBlocksString, getInventoryString, pad } from '../npc/utils.js';
+import { getAdjacentBlocksString, getInventoryString, getScanAreaString, pad } from '../npc/utils.js';
 
 // queries are commands that just return strings and don't affect anything in the world
 export const queryList = [
@@ -53,7 +53,7 @@ export const queryList = [
 
             res += '\n- Nearby Human Players: ' + (players.length > 0 ? players.join(', ') : 'None.');
             res += '\n- Nearby Bot Players: ' + (bots.length > 0 ? bots.join(', ') : 'None.');
-            res += getInventoryString(agent);
+            res += getInventoryString(agent.bot);
             res += agent.bot.modes.getMiniDocs();
             res += getAdjacentBlocksString(bot);
             if (agent.memory_bank.getKeys()) {
@@ -67,7 +67,7 @@ export const queryList = [
         name: "!inventory",
         description: "Get your bot's inventory.",
         perform: function (agent) {
-            return getInventoryString(agent);
+            return getInventoryString(agent.bot);
         }
     },
     {
@@ -109,7 +109,15 @@ export const queryList = [
           }
         },
         perform: function (agent, item) {
-            let recipe = world.getRecipe(agent.bot, item);
+            let recipe = {};
+            if (item.includes("_ingot")) {
+                recipe = {
+                    "item": item,
+                    "materials": ["Smelt at furnace: raw_" + item.replace("_ingot", "")]
+                }
+            } else {
+                recipe = world.getRecipe(agent.bot, item);
+            }
             if (recipe.error) {
                 return `RECIPE:\nItem to craft: ${recipe.item}\nError: ${recipe.error}`;
             } else {
@@ -169,23 +177,20 @@ export const roleQueryList = [
         name: "!scanFarm",
         description: "Get details about the nearby farm blocks.",
         perform: function (agent) {
-            let bot = agent.bot;
-            let res = 'SCAN_FARM';
+            let distance = 30;
+            let max_per_type = 4;
             let block_types = ["composter", "chest", "crafting_table", "dirt_path", "farmland", "short_grass", "wheat", "wheat_seeds", "beetroot_seeds", "melon_seeds", "grass_block", "melon", "melon_seeds", "beetroots", "potatoes", "carrots", "pumpkin_seeds", "pumpkin"]
-            let blocks = world.getNearbyBlockDetails(bot, block_types, 16, 16);
-            for (let i = 0; i < blocks.length; i++) {
-                res += `\n- ${blocks[i]}`;
-            }
-            if (blocks.length == 0) {
-                res += ': none';
-            }
-            res += `\nYour location: [${Math.round(bot.entity.position.x)},${Math.round(bot.entity.position.y)},${Math.round(bot.entity.position.z)}]`;
-            res += getAdjacentBlocksString(bot); 
-            return pad(res);
+            return getScanAreaString(agent.bot, 'SCAN_FARM', block_types, distance, max_per_type);
         }
     },
-]
-
+    {
+      name: "!smeltable",
+      description: "Get the smeltable items with the bot's inventory.",
+      perform: function (agent) {
+          return getSmeltableString(agent);
+      }
+  },
+];
 
 function getCraftableString(agent) {
     let craftable = world.getCraftableItems(agent.bot);
@@ -199,3 +204,15 @@ function getCraftableString(agent) {
     return pad(res);
 }
 
+
+function getSmeltableString(agent) {
+  let smeltable = world.getSmeltableItems(agent.bot);
+  let res = 'SMELTABLE_ITEMS';
+  for (const item of smeltable) {
+      res += `\n- ${item}`;
+  }
+  if (res == 'SMELTABLE_ITEMS') {
+      res += ': none';
+  }
+  return pad(res);
+}
